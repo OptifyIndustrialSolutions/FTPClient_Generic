@@ -518,7 +518,7 @@ void FTPClient_Generic::ContentList(const char * dir, String * list)
   char _resp[ sizeof(outBuf) ];
   uint16_t _b = 0;
 
-  FTP_LOGINFO("Send MLSD");
+  FTP_LOGINFO("Send NLST");
 
   if (!isConnected())
   {

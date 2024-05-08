@@ -84,7 +84,7 @@
 #define COMMAND_CURRENT_WORKING_DIR     F("CWD ")
 #define COMMAND_MAKE_DIR                F("MKD ")
 #define COMMAND_REMOVE_DIR              F("RMD ")
-#define COMMAND_LIST_DIR_STANDARD       F("MLSD ")
+#define COMMAND_LIST_DIR_STANDARD       F("NLST ")
 #define COMMAND_LIST_DIR                F("LIST ")
 
 #define COMMAND_DOWNLOAD                F("RETR ")
