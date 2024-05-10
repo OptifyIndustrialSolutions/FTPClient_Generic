@@ -31,35 +31,35 @@
 #include "FTPClient_Generic.hpp"
 
 #if !defined(USING_NEW_PASSIVE_MODE_ANSWER_TYPE)
-  #define USING_NEW_PASSIVE_MODE_ANSWER_TYPE    true
+#define USING_NEW_PASSIVE_MODE_ANSWER_TYPE true
 #endif
 
 /////////////////////////////////////////////
 
-FTPClient_Generic::FTPClient_Generic(char* _serverAdress, uint16_t _port, char* _userName, char* _passWord,
+FTPClient_Generic::FTPClient_Generic(char *_serverAdress, uint16_t _port, char *_userName, char *_passWord,
                                      uint16_t _timeout)
 {
-  userName      = _userName;
-  passWord      = _passWord;
-  serverAdress  = _serverAdress;
-  port          = _port;
-  timeout       = _timeout;
+  userName = _userName;
+  passWord = _passWord;
+  serverAdress = _serverAdress;
+  port = _port;
+  timeout = _timeout;
 }
 
 /////////////////////////////////////////////
 
-FTPClient_Generic::FTPClient_Generic(char* _serverAdress, char* _userName, char* _passWord, uint16_t _timeout)
+FTPClient_Generic::FTPClient_Generic(char *_serverAdress, char *_userName, char *_passWord, uint16_t _timeout)
 {
-  userName      = _userName;
-  passWord      = _passWord;
-  serverAdress  = _serverAdress;
-  port          = FTP_PORT;
-  timeout       = _timeout;
+  userName = _userName;
+  passWord = _passWord;
+  serverAdress = _serverAdress;
+  port = FTP_PORT;
+  timeout = _timeout;
 }
 
 /////////////////////////////////////////////
 
-theFTPClient* FTPClient_Generic::GetDataClient()
+theFTPClient *FTPClient_Generic::GetDataClient()
 {
   return &dclient;
 }
@@ -78,7 +78,7 @@ bool FTPClient_Generic::isConnected()
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::GetLastModifiedTime(const char  * fileName, char* result)
+void FTPClient_Generic::GetLastModifiedTime(const char *fileName, char *result)
 {
   FTP_LOGINFO("Send MDTM");
 
@@ -90,12 +90,12 @@ void FTPClient_Generic::GetLastModifiedTime(const char  * fileName, char* result
 
   client.print(COMMAND_FILE_LAST_MOD_TIME);
   client.println(fileName);
-  GetFTPAnswer (result, 4);
+  GetFTPAnswer(result, 4);
 }
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::WriteClientBuffered(theFTPClient* cli, unsigned char * data, int dataLength)
+void FTPClient_Generic::WriteClientBuffered(theFTPClient *cli, unsigned char *data, int dataLength)
 {
   if (!isConnected())
     return;
@@ -116,7 +116,7 @@ void FTPClient_Generic::WriteClientBuffered(theFTPClient* cli, unsigned char * d
 #endif
 
       FTP_LOGDEBUG3("Written: num bytes = ", bufferSize, ", index = ", i);
-      FTP_LOGDEBUG3("Written: clientBuf = ", (uint32_t) clientBuf, ", clientCount = ", clientCount);
+      FTP_LOGDEBUG3("Written: clientBuf = ", (uint32_t)clientBuf, ", clientCount = ", clientCount);
 
       clientCount = 0;
     }
@@ -132,7 +132,7 @@ void FTPClient_Generic::WriteClientBuffered(theFTPClient* cli, unsigned char * d
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::GetFTPAnswer (char* result, int offsetStart)
+void FTPClient_Generic::GetFTPAnswer(char *result, int offsetStart)
 {
   char thisByte;
   outCount = 0;
@@ -142,10 +142,10 @@ void FTPClient_Generic::GetFTPAnswer (char* result, int offsetStart)
   while (!client.available() && millis() < _m + timeout)
     delay(100);
 
-  if ( !client.available())
+  if (!client.available())
   {
-    memset( outBuf, 0, sizeof(outBuf) );
-    strcpy( outBuf, "Offline");
+    memset(outBuf, 0, sizeof(outBuf));
+    strcpy(outBuf, "Offline");
 
     _isConnected = false;
     isConnected();
@@ -165,7 +165,7 @@ void FTPClient_Generic::GetFTPAnswer (char* result, int offsetStart)
     }
   }
 
-  if (outBuf[0] == '4' || outBuf[0] == '5' )
+  if (outBuf[0] == '4' || outBuf[0] == '5')
   {
     _isConnected = false;
     isConnected();
@@ -191,7 +191,7 @@ void FTPClient_Generic::GetFTPAnswer (char* result, int offsetStart)
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::WriteData (unsigned char * data, int dataLength)
+void FTPClient_Generic::WriteData(unsigned char *data, int dataLength)
 {
   FTP_LOGDEBUG(F("Writing"));
 
@@ -208,7 +208,7 @@ void FTPClient_Generic::WriteData (unsigned char * data, int dataLength)
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::CloseFile ()
+void FTPClient_Generic::CloseFile()
 {
   FTP_LOGDEBUG(F("Close File"));
   dclient.stop();
@@ -224,7 +224,7 @@ void FTPClient_Generic::CloseFile ()
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::Write(const char * str)
+void FTPClient_Generic::Write(const char *str)
 {
   FTP_LOGDEBUG(F("Write File"));
 
@@ -252,11 +252,11 @@ void FTPClient_Generic::OpenConnection()
 {
   FTP_LOGINFO1(F("Connecting to: "), serverAdress);
 
-#if ( (ESP32) && !FTP_CLIENT_USING_ETHERNET )
+#if ((ESP32) && !FTP_CLIENT_USING_ETHERNET)
 
-  if ( client.connect(serverAdress, port, timeout) )
+  if (client.connect(serverAdress, port, timeout))
 #else
-  if ( client.connect(serverAdress, port) )
+  if (client.connect(serverAdress, port))
 #endif
   {
     FTP_LOGINFO(F("Command connected"));
@@ -281,7 +281,7 @@ void FTPClient_Generic::OpenConnection()
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::RenameFile(const char* from, const char* to)
+void FTPClient_Generic::RenameFile(const char *from, const char *to)
 {
   FTP_LOGINFO("Send RNFR");
 
@@ -306,7 +306,7 @@ void FTPClient_Generic::RenameFile(const char* from, const char* to)
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::NewFile (const char* fileName)
+void FTPClient_Generic::NewFile(const char *fileName)
 {
   FTP_LOGINFO("Send STOR");
 
@@ -324,10 +324,12 @@ void FTPClient_Generic::NewFile (const char* fileName)
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::InitFile(const char* type)
+void FTPClient_Generic::InitFile(const char *type)
 {
-  FTP_LOGINFO1("Send TYPE", type);
-
+  if (type != "")
+  {
+    FTP_LOGINFO1("Send TYPE", type);
+  }
   if (!isConnected())
   {
     FTP_LOGERROR("InitFile: Not connected error");
@@ -343,9 +345,9 @@ void FTPClient_Generic::InitFile(const char* type)
   FTP_LOGDEBUG1("outBuf =", outBuf);
 
   char *tmpPtr;
-  //FTP_LOGDEBUG1("outBuf =", strtol(outBuf, &tmpPtr, 10 ));
+  // FTP_LOGDEBUG1("outBuf =", strtol(outBuf, &tmpPtr, 10 ));
 
-  while (strtol(outBuf, &tmpPtr, 10 ) != ENTERING_PASSIVE_MODE)
+  while (strtol(outBuf, &tmpPtr, 10) != ENTERING_PASSIVE_MODE)
   {
     client.println(COMMAND_PASSIVE_MODE);
     GetFTPAnswer();
@@ -357,18 +359,18 @@ void FTPClient_Generic::InitFile(const char* type)
   // 227 Entering Passive Mode (192,168,2,112,157,218)
   // 227 Entering Passive Mode (4043483328, port 55600)
   char *passiveIP = strchr(outBuf, '(') + 1;
-  //FTP_LOGDEBUG1("passiveIP =", atoi(passiveIP));
+  // FTP_LOGDEBUG1("passiveIP =", atoi(passiveIP));
 
   if (atoi(passiveIP) <= 0xFF)
   {
     char *tStr = strtok(outBuf, "(,");
     int array_pasv[6];
 
-    for ( int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; i++)
     {
       tStr = strtok(NULL, "(,");
 
-      //FTP_LOGDEBUG1("tStr =", tStr);
+      // FTP_LOGDEBUG1("tStr =", tStr);
 
       if (tStr == NULL)
       {
@@ -395,9 +397,9 @@ void FTPClient_Generic::InitFile(const char* type)
   {
     // Using with old style PASV answer, such as `FTP_Server_Teensy41` library
 
-    //char *subStr = strchr(outBuf, '(') + 1;
+    // char *subStr = strchr(outBuf, '(') + 1;
     char *ptr = strtok(passiveIP, ",");
-    uint32_t ret = strtoul( ptr, &tmpPtr, 10 );
+    uint32_t ret = strtoul(ptr, &tmpPtr, 10);
 
     // get IP of data client
     _dataAddress = IPAddress(ret);
@@ -405,12 +407,12 @@ void FTPClient_Generic::InitFile(const char* type)
     passiveIP = strchr(outBuf, ')');
     ptr = strtok(passiveIP, "port ");
 
-    _dataPort = strtol( ptr, &tmpPtr, 10 );
+    _dataPort = strtol(ptr, &tmpPtr, 10);
   }
 
   FTP_LOGINFO3(F("_dataAddress: "), _dataAddress, F(", Data port: "), _dataPort);
 
-#if ( (ESP32) && !FTP_CLIENT_USING_ETHERNET )
+#if ((ESP32) && !FTP_CLIENT_USING_ETHERNET)
 
   if (dclient.connect(_dataAddress, _dataPort, timeout))
 #else
@@ -419,14 +421,16 @@ void FTPClient_Generic::InitFile(const char* type)
   {
     FTP_LOGDEBUG(F("Data connection established"));
   }
-
-  client.println(type);
-  GetFTPAnswer();
+  if (type != "")
+  {
+    client.println(type);
+    GetFTPAnswer();
+  }
 }
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::AppendFile (const char* fileName)
+void FTPClient_Generic::AppendFile(const char *fileName)
 {
   FTP_LOGINFO("Send APPE");
 
@@ -443,7 +447,7 @@ void FTPClient_Generic::AppendFile (const char* fileName)
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::ChangeWorkDir(const char * dir)
+void FTPClient_Generic::ChangeWorkDir(const char *dir)
 {
   FTP_LOGINFO("Send CWD");
 
@@ -460,7 +464,7 @@ void FTPClient_Generic::ChangeWorkDir(const char * dir)
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::DeleteFile(const char * file)
+void FTPClient_Generic::DeleteFile(const char *file)
 {
   FTP_LOGINFO("Send DELE");
 
@@ -477,7 +481,7 @@ void FTPClient_Generic::DeleteFile(const char * file)
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::MakeDir(const char * dir)
+void FTPClient_Generic::MakeDir(const char *dir)
 {
   FTP_LOGINFO("Send MKD");
 
@@ -495,7 +499,7 @@ void FTPClient_Generic::MakeDir(const char * dir)
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::RemoveDir(const char * dir)
+void FTPClient_Generic::RemoveDir(const char *dir)
 {
   FTP_LOGINFO("Send RMD");
 
@@ -513,9 +517,9 @@ void FTPClient_Generic::RemoveDir(const char * dir)
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::ContentList(const char * dir, String * list)
+void FTPClient_Generic::ContentList(const char *dir, String *list)
 {
-  char _resp[ sizeof(outBuf) ];
+  char _resp[sizeof(outBuf)];
   uint16_t _b = 0;
 
   FTP_LOGINFO("Send NLST");
@@ -532,21 +536,21 @@ void FTPClient_Generic::ContentList(const char * dir, String * list)
 
   // Convert char array to string to manipulate and find response size
   // each server reports it differently, TODO = FEAT
-  //String resp_string = _resp;
-  //resp_string.substring(resp_string.lastIndexOf('matches')-9);
-  //FTP_LOGDEBUG(resp_string);
+  // String resp_string = _resp;
+  // resp_string.substring(resp_string.lastIndexOf('matches')-9);
+  // FTP_LOGDEBUG(resp_string);
 
   unsigned long _m = millis();
 
-  while ( !dclient.available() && millis() < _m + timeout)
+  while (!dclient.available() && millis() < _m + timeout)
     delay(1);
 
   while (dclient.available())
   {
-    if ( _b < 128 )
+    if (_b < 128)
     {
       list[_b] = dclient.readStringUntil('\n');
-      //FTP_LOGDEBUG(String(_b) + ":" + list[_b]);
+      // FTP_LOGDEBUG(String(_b) + ":" + list[_b]);
       _b++;
     }
   }
@@ -554,9 +558,9 @@ void FTPClient_Generic::ContentList(const char * dir, String * list)
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::ContentListWithListCommand(const char * dir, String * list)
+void FTPClient_Generic::ContentListWithListCommand(const char *dir, String *list)
 {
-  char _resp[ sizeof(outBuf) ];
+  char _resp[sizeof(outBuf)];
   uint16_t _b = 0;
 
   FTP_LOGINFO("Send LIST");
@@ -574,23 +578,23 @@ void FTPClient_Generic::ContentListWithListCommand(const char * dir, String * li
 
   // Convert char array to string to manipulate and find response size
   // each server reports it differently, TODO = FEAT
-  //String resp_string = _resp;
-  //resp_string.substring(resp_string.lastIndexOf('matches')-9);
-  //FTP_LOGDEBUG(resp_string);
+  // String resp_string = _resp;
+  // resp_string.substring(resp_string.lastIndexOf('matches')-9);
+  // FTP_LOGDEBUG(resp_string);
 
   unsigned long _m = millis();
 
-  while ( !dclient.available() && millis() < _m + timeout)
+  while (!dclient.available() && millis() < _m + timeout)
     delay(1);
 
   while (dclient.available())
   {
-    if ( _b < 128 )
+    if (_b < 128)
     {
       String tmp = dclient.readStringUntil('\n');
       list[_b] = tmp.substring(tmp.lastIndexOf(" ") + 1, tmp.length());
 
-      //FTP_LOGDEBUG(String(_b) + ":" + tmp);
+      // FTP_LOGDEBUG(String(_b) + ":" + tmp);
 
       _b++;
     }
@@ -599,7 +603,7 @@ void FTPClient_Generic::ContentListWithListCommand(const char * dir, String * li
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::DownloadString(const char * filename, String &str)
+void FTPClient_Generic::DownloadString(const char *filename, String &str)
 {
   FTP_LOGINFO("Send RETR");
 
@@ -609,15 +613,15 @@ void FTPClient_Generic::DownloadString(const char * filename, String &str)
   client.print(COMMAND_DOWNLOAD);
   client.println(filename);
 
-  char _resp[ sizeof(outBuf) ];
+  char _resp[sizeof(outBuf)];
   GetFTPAnswer(_resp);
 
   unsigned long _m = millis();
 
-  while ( !GetDataClient()->available() && millis() < _m + timeout)
+  while (!GetDataClient()->available() && millis() < _m + timeout)
     delay(1);
 
-  while ( GetDataClient()->available() )
+  while (GetDataClient()->available())
   {
     str += GetDataClient()->readString();
   }
@@ -625,7 +629,7 @@ void FTPClient_Generic::DownloadString(const char * filename, String &str)
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::DownloadFile(const char * filename, unsigned char * buf, size_t length, bool printUART )
+void FTPClient_Generic::DownloadFile(const char *filename, unsigned char *buf, size_t length, bool printUART)
 {
   FTP_LOGINFO("Send RETR");
 
@@ -638,31 +642,111 @@ void FTPClient_Generic::DownloadFile(const char * filename, unsigned char * buf,
   client.print(COMMAND_DOWNLOAD);
   client.println(filename);
 
-  char _resp[ sizeof(outBuf) ];
+  char _resp[sizeof(outBuf)];
   GetFTPAnswer(_resp);
 
   char _buf[2];
 
   unsigned long _m = millis();
 
-  while ( !dclient.available() && millis() < _m + timeout)
+  while (!dclient.available() && millis() < _m + timeout)
     delay(1);
 
   while (dclient.available())
   {
-    if ( !printUART )
+    if (!printUART)
       dclient.readBytes(buf, length);
     else
     {
-      for (size_t _b = 0; _b < length; _b++ )
+      for (size_t _b = 0; _b < length; _b++)
       {
         dclient.readBytes(_buf, 1);
-        //FTP_LOGDEBUG0(_buf[0]);
+        // FTP_LOGDEBUG0(_buf[0]);
       }
     }
   }
 }
+/////////////////////////////////////////////
+
+void FTPClient_Generic::DownloadFileToSD(String ftp_fileame, String sd_filename)
+{
+  File sdFile = SD.open(sd_filename, FILE_WRITE);
+  if (!sdFile)
+  {
+    FTP_LOGERROR("Failed to open file on SD card!");
+    return;
+  }
+  // FTP_LOGINFO("Send PASV");
+
+  // client.println(COMMAND_PASSIVE_MODE);
+  // GetFTPAnswer();
+
+  FTP_LOGINFO("Send RETR");
+
+  if (!isConnected())
+  {
+    FTP_LOGERROR("DownloadFile: Not connected error");
+    return;
+  }
+
+  client.print(COMMAND_DOWNLOAD);
+  client.println(ftp_fileame);
+
+  char _resp[sizeof(outBuf)];
+  GetFTPAnswer(_resp);
+
+  
+  uint16_t alert_timeout = timeout;
+  bool flag_alert_timeout = true;
+  if (timeout > 1000)
+  {
+    alert_timeout = timeout - 1000;
+  }
+  
+  unsigned long _m = millis();
+  while (!dclient.available() && millis() < _m + timeout)
+  {
+    if (millis() < _m + alert_timeout)
+    {
+      if (flag_alert_timeout)
+      {
+        flag_alert_timeout = false;
+        Serial.printf("FTP File download timeout %d millis reached..\n", alert_timeout);
+      }
+    }
+    delay(1);
+  }
+  if (flag_alert_timeout == false)
+  {
+    Serial.println("Skipping FTP download..");
+    sdFile.close();
+    return;
+  }
+  Serial.println("FTP download to SD started..");
+  Serial.print(" ");
+  char _buf[2];
+  bool flag_animate = false;
+  unsigned long time_of_animate = 0;
+  while (dclient.available())
+  {
+    // String data = dclient.readStringUntil('\n');
+    // data += "\n";
+    // sdFile.print(data);
+    dclient.readBytes(_buf, 1);
+    sdFile.write(_buf[0]);
+    if ((millis() - time_of_animate) > 200)
+    {
+      time_of_animate = millis();
+      Serial.print("\b");
+      flag_animate = !flag_animate;
+      Serial.print(flag_animate ? "X" : "+");
+    }
+  }
+  Serial.print("\b");
+  Serial.println("FTP download to SD finished..");
+  sdFile.close();
+}
 
 /////////////////////////////////////////////
 
-#endif    // FTPCLIENT_GENERIC_IMPL_H
+#endif // FTPCLIENT_GENERIC_IMPL_H
