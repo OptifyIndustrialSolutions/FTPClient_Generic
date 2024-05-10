@@ -226,7 +226,7 @@ void FTPClient_Generic::CloseFile()
 
 void FTPClient_Generic::Write(const char *str)
 {
-  FTP_LOGDEBUG(F("Write File"));
+  // FTP_LOGDEBUG(F("Write File"));
 
   if (!isConnected())
   {
