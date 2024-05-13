@@ -324,8 +324,9 @@ void FTPClient_Generic::NewFile(const char *fileName)
 
 /////////////////////////////////////////////
 
-void FTPClient_Generic::InitFile(const char *type)
+bool FTPClient_Generic::InitFile(const char *type)
 {
+  Serial.println("Trying to init file port..");
   if (type != "")
   {
     FTP_LOGINFO1("Send TYPE", type);
@@ -333,7 +334,7 @@ void FTPClient_Generic::InitFile(const char *type)
   if (!isConnected())
   {
     FTP_LOGERROR("InitFile: Not connected error");
-    return;
+    return 0;
   }
 
   FTP_LOGINFO("Send PASV");
@@ -377,7 +378,7 @@ void FTPClient_Generic::InitFile(const char *type)
         FTP_LOGDEBUG(F("Bad PASV Answer"));
 
         CloseConnection();
-        return;
+        return 0;
       }
 
       array_pasv[i] = atoi(tStr);
@@ -411,9 +412,9 @@ void FTPClient_Generic::InitFile(const char *type)
   }
 
   FTP_LOGINFO3(F("_dataAddress: "), _dataAddress, F(", Data port: "), _dataPort);
+  delay(100); // to avoid : [E][WiFiClient.cpp:275] connect(): socket error on fd 50, errno: 104, "Connection reset by peer"
 
 #if ((ESP32) && !FTP_CLIENT_USING_ETHERNET)
-
   if (dclient.connect(_dataAddress, _dataPort, timeout))
 #else
   if (dclient.connect(_dataAddress, _dataPort))
@@ -421,11 +422,25 @@ void FTPClient_Generic::InitFile(const char *type)
   {
     FTP_LOGDEBUG(F("Data connection established"));
   }
+  else
+  {
+    FTP_LOGDEBUG(F("Data connection failed"));
+    return 0;
+  }
+
+  if (!isConnected())
+  {
+    log_e("InitFile: Data connection failed");
+    return 0;
+  }
+
   if (type != "")
   {
     client.println(type);
     GetFTPAnswer();
   }
+  Serial.println("File init port opened..");
+  return 1;
 }
 
 /////////////////////////////////////////////
@@ -668,13 +683,13 @@ void FTPClient_Generic::DownloadFile(const char *filename, unsigned char *buf, s
 }
 /////////////////////////////////////////////
 
-void FTPClient_Generic::DownloadFileToSD(String ftp_fileame, String sd_filename)
+bool FTPClient_Generic::DownloadFileToSD(String ftp_fileame, String sd_filename)
 {
   File sdFile = SD.open(sd_filename, FILE_WRITE);
   if (!sdFile)
   {
     FTP_LOGERROR("Failed to open file on SD card!");
-    return;
+    return false;
   }
   // FTP_LOGINFO("Send PASV");
 
@@ -683,26 +698,24 @@ void FTPClient_Generic::DownloadFileToSD(String ftp_fileame, String sd_filename)
 
   FTP_LOGINFO("Send RETR");
 
-  if (!isConnected())
-  {
-    FTP_LOGERROR("DownloadFile: Not connected error");
-    return;
-  }
-
   client.print(COMMAND_DOWNLOAD);
   client.println(ftp_fileame);
 
   char _resp[sizeof(outBuf)];
   GetFTPAnswer(_resp);
 
-  
+  if (!isConnected())
+  {
+    FTP_LOGERROR("DownloadFile: Not connected error");
+    return false;
+  }
   uint16_t alert_timeout = timeout;
   bool flag_alert_timeout = true;
   if (timeout > 1000)
   {
     alert_timeout = timeout - 1000;
   }
-  
+
   unsigned long _m = millis();
   while (!dclient.available() && millis() < _m + timeout)
   {
@@ -720,15 +733,20 @@ void FTPClient_Generic::DownloadFileToSD(String ftp_fileame, String sd_filename)
   {
     Serial.println("Skipping FTP download..");
     sdFile.close();
-    return;
+    return false;
   }
-  Serial.println("FTP download to SD started..");
-  Serial.print(" ");
   char _buf[2];
   bool flag_animate = false;
   unsigned long time_of_animate = 0;
+  bool flag_downloading_sarted = 0;
   while (dclient.available())
   {
+    if (!flag_downloading_sarted)
+    {
+      flag_downloading_sarted = 1;
+      Serial.println("FTP download to SD started..");
+      Serial.print(" ");
+    }
     // String data = dclient.readStringUntil('\n');
     // data += "\n";
     // sdFile.print(data);
@@ -742,9 +760,13 @@ void FTPClient_Generic::DownloadFileToSD(String ftp_fileame, String sd_filename)
       Serial.print(flag_animate ? "X" : "+");
     }
   }
-  Serial.print("\b");
-  Serial.println("FTP download to SD finished..");
+  if (flag_downloading_sarted)
+  {
+    Serial.print("\b");
+    Serial.println("FTP download to SD finished..");
+  }
   sdFile.close();
+  return flag_downloading_sarted;
 }
 
 /////////////////////////////////////////////

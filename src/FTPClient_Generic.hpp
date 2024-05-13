@@ -148,7 +148,7 @@ class FTPClient_Generic
     void GetLastModifiedTime(const char* fileName, char* result);
     void RenameFile(const char* from, const char* to);
     void Write(const char * str);
-    void InitFile(const char* type);
+    bool InitFile(const char* type);
     void ChangeWorkDir(const char * dir);
     void DeleteFile(const char * file);
     void MakeDir(const char * dir);
@@ -157,7 +157,7 @@ class FTPClient_Generic
     void ContentListWithListCommand(const char * dir, String * list);
     void DownloadString(const char * filename, String &str);
     void DownloadFile(const char * filename, unsigned char * buf, size_t length, bool printUART = false);
-    void DownloadFileToSD(String ftp_fileame,String sd_filename);
+    bool DownloadFileToSD(String ftp_fileame,String sd_filename);
 };
 
 #endif  // FTPCLIENT_GENERIC_HPP
