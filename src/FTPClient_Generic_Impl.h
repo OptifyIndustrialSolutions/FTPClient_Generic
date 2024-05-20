@@ -34,6 +34,9 @@
 #define USING_NEW_PASSIVE_MODE_ANSWER_TYPE true
 #endif
 
+void logMemory() {
+  log_d("Used PSRAM: %d", ESP.getPsramSize() - ESP.getFreePsram());
+}
 /////////////////////////////////////////////
 
 FTPClient_Generic::FTPClient_Generic(char *_serverAdress, uint16_t _port, char *_userName, char *_passWord,
@@ -771,7 +774,9 @@ bool FTPClient_Generic::DownloadFileToSD(String ftp_fileame, String sd_filename)
 
 bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filename)
 {
+  logMemory();
   uint8_t *psRamFile = (uint8_t *)ps_malloc(1500000);
+  logMemory();
 
   // FTP_LOGINFO("Send PASV");
 
@@ -831,8 +836,8 @@ bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filena
       Serial.println("FTP download to PSRAM started..");
       Serial.print(" ");
     }
-    int data_length =  dclient.readBytes(_buf, sizeof(_buf)); // Fix: Correct the arguments passed to dclient.readBytes()
-    memcpy(&psRamFile[buffer_length], _buf, data_length); // Fix: Assign the read byte to the psRamFile array
+    int data_length = dclient.readBytes(_buf, sizeof(_buf)); // Fix: Correct the arguments passed to dclient.readBytes()
+    memcpy(&psRamFile[buffer_length], _buf, data_length);    // Fix: Assign the read byte to the psRamFile array
     buffer_length = buffer_length + data_length;
     if ((millis() - time_of_animate) > 200)
     {
@@ -845,7 +850,7 @@ bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filena
   if (flag_downloading_started)
   {
     Serial.print("\b");
-    Serial.printf("FTP download to PSRAM finished in %lu millis (%lu)\n", (millis() - ftp_stream),buffer_length);
+    Serial.printf("FTP download to PSRAM finished in %lu millis (%lu)\n", (millis() - ftp_stream), buffer_length);
   }
 #ifdef enable_sd
   Serial.println("Copy PSRAM file to SD");
@@ -858,10 +863,12 @@ bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filena
     return false;
   }
   // sdFile.write((byte *)psRamFile, sizeof(psRamFile));
-  sdFile.write((byte*)psRamFile, buffer_length);
+  sdFile.write((byte *)psRamFile, buffer_length);
   sdFile.close();
   Serial.printf("PSRAM to SD finished in %lu millis\n", (millis() - ftp_stream));
 #endif
+  free(psRamFile);
+  logMemory();
   return flag_downloading_started;
 }
 
