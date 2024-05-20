@@ -769,6 +769,105 @@ bool FTPClient_Generic::DownloadFileToSD(String ftp_fileame, String sd_filename)
   return flag_downloading_sarted;
 }
 
+bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filename)
+{
+  char* psRamFile = (char*)ps_malloc(1500000);
+  File sdFile = SD.open(sd_filename, FILE_WRITE);
+  if (!sdFile)
+  {
+    FTP_LOGERROR("Failed to open file on SD card!");
+    return false;
+  }
+
+  // FTP_LOGINFO("Send PASV");
+
+  // client.println(COMMAND_PASSIVE_MODE);
+  // GetFTPAnswer();
+
+  FTP_LOGINFO("Send RETR");
+
+  client.print(COMMAND_DOWNLOAD);
+  client.println(ftp_fileame);
+
+  char _resp[sizeof(outBuf)];
+  GetFTPAnswer(_resp);
+
+  if (!isConnected())
+  {
+    FTP_LOGERROR("DownloadFile: Not connected error");
+    return false;
+  }
+  uint16_t alert_timeout = timeout;
+  bool flag_alert_timeout = true;
+  if (timeout > 1000)
+  {
+    alert_timeout = timeout - 1000;
+  }
+
+  unsigned long _m = millis();
+  while (!dclient.available() && millis() < _m + timeout)
+  {
+    if (millis() < _m + alert_timeout)
+    {
+      if (flag_alert_timeout)
+      {
+        flag_alert_timeout = false;
+        Serial.printf("FTP File download timeout %d millis reached..\n", alert_timeout);
+      }
+    }
+    delay(1);
+  }
+  if (flag_alert_timeout == false)
+  {
+    Serial.println("Skipping FTP download..");
+    sdFile.close();
+    return false;
+  }
+  char _buf[2];
+  bool flag_animate = false;
+  unsigned long time_of_animate = millis();
+  bool flag_downloading_sarted = 0;
+
+  while (dclient.available())
+  {
+    if (!flag_downloading_sarted)
+    {
+      flag_downloading_sarted = 1;
+      Serial.println("FTP download to PSRAM started..");
+      Serial.print(" ");
+    }
+    // String data = dclient.readStringUntil('\n');
+    // data += "\n";
+    // sdFile.print(data);
+
+    // dclient.readBytes(_buf, 1);
+    // sdFile.write(_buf[0]);
+
+    dclient.readBytes(psRamFile, 1500000);
+
+    if ((millis() - time_of_animate) > 200)
+    {
+      time_of_animate = millis();
+      Serial.print("\b");
+      flag_animate = !flag_animate;
+      Serial.print(flag_animate ? "X" : "+");
+    }
+  }
+
+  if (flag_downloading_sarted)
+  {
+    Serial.print("\b");
+    Serial.printf("FTP download to PSRAM finished in %lu millis()",(time_of_animate - millis()));
+  }
+
+  Serial.println("Copy PSRAM to SD");
+  time_of_animate = millis();
+  sdFile.write((byte *)&psRamFile, sizeof(psRamFile));
+  sdFile.close();
+  Serial.printf("Copy PSRAM to SD finished in %lu millis()",(time_of_animate - millis()));
+  return flag_downloading_sarted;
+}
+
 /////////////////////////////////////////////
 
 #endif // FTPCLIENT_GENERIC_IMPL_H

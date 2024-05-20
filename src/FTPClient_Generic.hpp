@@ -158,6 +158,7 @@ class FTPClient_Generic
     void DownloadString(const char * filename, String &str);
     void DownloadFile(const char * filename, unsigned char * buf, size_t length, bool printUART = false);
     bool DownloadFileToSD(String ftp_fileame,String sd_filename);
+    bool DownloadFileToPSRAM(String ftp_fileame,String sd_filename);
 };
 
 #endif  // FTPCLIENT_GENERIC_HPP
