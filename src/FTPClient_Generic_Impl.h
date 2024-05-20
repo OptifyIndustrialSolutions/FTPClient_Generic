@@ -771,13 +771,7 @@ bool FTPClient_Generic::DownloadFileToSD(String ftp_fileame, String sd_filename)
 
 bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filename)
 {
-  char* psRamFile = (char*)ps_malloc(1500000);
-  File sdFile = SD.open(sd_filename, FILE_WRITE);
-  if (!sdFile)
-  {
-    FTP_LOGERROR("Failed to open file on SD card!");
-    return false;
-  }
+  char *psRamFile = (char *)ps_malloc(1500000);
 
   // FTP_LOGINFO("Send PASV");
 
@@ -820,14 +814,13 @@ bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filena
   if (flag_alert_timeout == false)
   {
     Serial.println("Skipping FTP download..");
-    sdFile.close();
+    // sdFile.close();
     return false;
   }
   char _buf[2];
   bool flag_animate = false;
-  unsigned long time_of_animate = millis();
+  unsigned long time_of_animate = 0;
   bool flag_downloading_sarted = 0;
-
   while (dclient.available())
   {
     if (!flag_downloading_sarted)
@@ -839,12 +832,9 @@ bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filena
     // String data = dclient.readStringUntil('\n');
     // data += "\n";
     // sdFile.print(data);
-
     // dclient.readBytes(_buf, 1);
     // sdFile.write(_buf[0]);
-
-    dclient.readBytes(psRamFile, 1500000);
-
+    dclient.readBytes((uint8_t *)psRamFile, sizeof(psRamFile));
     if ((millis() - time_of_animate) > 200)
     {
       time_of_animate = millis();
@@ -853,18 +843,21 @@ bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filena
       Serial.print(flag_animate ? "X" : "+");
     }
   }
-
   if (flag_downloading_sarted)
   {
     Serial.print("\b");
-    Serial.printf("FTP download to PSRAM finished in %lu millis()",(time_of_animate - millis()));
+    Serial.printf("FTP download to PSRAM finished in %iu millis\n", (time_of_animate - millis()));
   }
 
-  Serial.println("Copy PSRAM to SD");
-  time_of_animate = millis();
-  sdFile.write((byte *)&psRamFile, sizeof(psRamFile));
-  sdFile.close();
-  Serial.printf("Copy PSRAM to SD finished in %lu millis()",(time_of_animate - millis()));
+  // File sdFile = SD.open(sd_filename, FILE_WRITE);
+  // if (!sdFile)
+  // {
+  //   FTP_LOGERROR("Failed to open file on SD card!");
+  //   return false;
+  // }
+  // sdFile.write((byte *)&psRamFile, sizeof(psRamFile));
+  // sdFile.close();
+
   return flag_downloading_sarted;
 }
 
