@@ -817,7 +817,7 @@ bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filena
     // sdFile.close();
     return false;
   }
-  char _buf[2];
+  char _buf[512];
   bool flag_animate = false;
   unsigned long time_of_animate = millis();
   bool flag_downloading_started = 0;
@@ -831,8 +831,9 @@ bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filena
       Serial.println("FTP download to PSRAM started..");
       Serial.print(" ");
     }
-    dclient.readBytes(_buf, 1); // Fix: Correct the arguments passed to dclient.readBytes()
-    psRamFile[buffer_length++] = _buf[0]; // Fix: Assign the read byte to the psRamFile array
+    int data_length =  dclient.readBytes(_buf, sizeof(_buf)); // Fix: Correct the arguments passed to dclient.readBytes()
+    memcpy(&psRamFile[buffer_length], _buf, data_length); // Fix: Assign the read byte to the psRamFile array
+    buffer_length = buffer_length + data_length;
     if ((millis() - time_of_animate) > 200)
     {
       time_of_animate = millis();
