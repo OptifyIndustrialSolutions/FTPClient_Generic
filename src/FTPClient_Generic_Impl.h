@@ -738,12 +738,12 @@ bool FTPClient_Generic::DownloadFileToSD(String ftp_fileame, String sd_filename)
   char _buf[2];
   bool flag_animate = false;
   unsigned long time_of_animate = 0;
-  bool flag_downloading_sarted = 0;
+  bool flag_downloading_started = 0;
   while (dclient.available())
   {
-    if (!flag_downloading_sarted)
+    if (!flag_downloading_started)
     {
-      flag_downloading_sarted = 1;
+      flag_downloading_started = 1;
       Serial.println("FTP download to SD started..");
       Serial.print(" ");
     }
@@ -760,18 +760,18 @@ bool FTPClient_Generic::DownloadFileToSD(String ftp_fileame, String sd_filename)
       Serial.print(flag_animate ? "X" : "+");
     }
   }
-  if (flag_downloading_sarted)
+  if (flag_downloading_started)
   {
     Serial.print("\b");
     Serial.println("FTP download to SD finished..");
   }
   sdFile.close();
-  return flag_downloading_sarted;
+  return flag_downloading_started;
 }
 
 bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filename)
 {
-  char *psRamFile = (char *)ps_malloc(1500000);
+  uint8_t *psRamFile = (uint8_t *)ps_malloc(1500000);
 
   // FTP_LOGINFO("Send PASV");
 
@@ -819,22 +819,20 @@ bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filena
   }
   char _buf[2];
   bool flag_animate = false;
-  unsigned long time_of_animate = 0;
-  bool flag_downloading_sarted = 0;
+  unsigned long time_of_animate = millis();
+  bool flag_downloading_started = 0;
+  unsigned long buffer_length = 0;
+  unsigned long ftp_stream = millis();
   while (dclient.available())
   {
-    if (!flag_downloading_sarted)
+    if (!flag_downloading_started)
     {
-      flag_downloading_sarted = 1;
+      flag_downloading_started = 1;
       Serial.println("FTP download to PSRAM started..");
       Serial.print(" ");
     }
-    // String data = dclient.readStringUntil('\n');
-    // data += "\n";
-    // sdFile.print(data);
-    // dclient.readBytes(_buf, 1);
-    // sdFile.write(_buf[0]);
-    dclient.readBytes((uint8_t *)psRamFile, sizeof(psRamFile));
+    dclient.readBytes(_buf, 1); // Fix: Correct the arguments passed to dclient.readBytes()
+    psRamFile[buffer_length++] = _buf[0]; // Fix: Assign the read byte to the psRamFile array
     if ((millis() - time_of_animate) > 200)
     {
       time_of_animate = millis();
@@ -843,22 +841,27 @@ bool FTPClient_Generic::DownloadFileToPSRAM(String ftp_fileame, String sd_filena
       Serial.print(flag_animate ? "X" : "+");
     }
   }
-  if (flag_downloading_sarted)
+  if (flag_downloading_started)
   {
     Serial.print("\b");
-    Serial.printf("FTP download to PSRAM finished in %iu millis\n", (time_of_animate - millis()));
+    Serial.printf("FTP download to PSRAM finished in %lu millis (%lu)\n", (millis() - ftp_stream),buffer_length);
   }
-
-  // File sdFile = SD.open(sd_filename, FILE_WRITE);
-  // if (!sdFile)
-  // {
-  //   FTP_LOGERROR("Failed to open file on SD card!");
-  //   return false;
-  // }
-  // sdFile.write((byte *)&psRamFile, sizeof(psRamFile));
-  // sdFile.close();
-
-  return flag_downloading_sarted;
+#ifdef enable_sd
+  Serial.println("Copy PSRAM file to SD");
+  Serial.flush();
+  ftp_stream = millis();
+  File sdFile = SD.open(sd_filename, FILE_WRITE);
+  if (!sdFile)
+  {
+    FTP_LOGERROR("Failed to open file on SD card!");
+    return false;
+  }
+  // sdFile.write((byte *)psRamFile, sizeof(psRamFile));
+  sdFile.write((byte*)psRamFile, buffer_length);
+  sdFile.close();
+  Serial.printf("PSRAM to SD finished in %lu millis\n", (millis() - ftp_stream));
+#endif
+  return flag_downloading_started;
 }
 
 /////////////////////////////////////////////
